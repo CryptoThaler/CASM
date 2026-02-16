@@ -1,0 +1,58 @@
+# .codex/config.toml
+# CASM (Devtools) - Codex project configuration
+# Targets: deterministic PR workflow, high transparency, low churn.
+
+# Model selection
+model = "gpt-5.3-codex"
+
+# Project root detection (monorepo friendly)
+project_root_markers = [".git", "pnpm-workspace.yaml", "turbo.json", "package.json"]
+
+# Safety: keep Codex from running destructive commands accidentally
+# (Use your own preferred allow/deny controls supported by your Codex surface.)
+# NOTE: Some surfaces expose these via settings; keep this as documentation even if not enforced everywhere.
+[commands]
+allow = [
+  "pnpm -r build",
+  "pnpm -r test",
+  "pnpm -r lint",
+  "pnpm -C packages/cli start -- --help",
+  "node --version",
+  "git status",
+  "git diff",
+  "git log -n 20",
+  "ls",
+  "cat",
+  "rg",
+  "find"
+]
+deny = [
+  "rm -rf",
+  "sudo",
+  "curl * | sh",
+  "bash -c *",
+  "powershell -Command *"
+]
+
+# Behavior preferences (Codex app/CLI/IDE share layered configs)
+[behavior]
+# Prefer small PRs with tests and clear acceptance criteria
+prefer_small_prs = true
+# Ask before broad refactors or dependency churn
+confirm_large_changes = true
+# Default: keep edits minimal and reversible
+minimize_diff = true
+
+# Optional: if your Codex surface supports it, constrain file access patterns
+[files]
+# Avoid touching secrets and binary artifacts
+ignore = [
+  "**/.env*",
+  "**/secrets/**",
+  "**/*.pem",
+  "**/*.key",
+  "**/*.p12",
+  "**/node_modules/**",
+  "**/dist/**",
+  "**/build/**"
+]
