@@ -3,7 +3,7 @@
 # Targets: deterministic PR workflow, high transparency, low churn.
 
 # Model selection
-model = "gpt-5.3-codex"
+model = "gpt-5.4-codex"
 
 # Project root detection (monorepo friendly)
 project_root_markers = [".git", "pnpm-workspace.yaml", "turbo.json", "package.json"]
