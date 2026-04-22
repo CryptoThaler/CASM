@@ -3,507 +3,247 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>C6Nano Env Sensor — SolarPunk Neon Console</title>
+    <title>Bird in a Bucky Box — Mic Reactive</title>
     <style>
       :root {
-        --bg: #03060f;
-        --fg: #c9ffe8;
-        --neon-a: #36ffe1;
-        --neon-b: #c55dff;
-        --neon-c: #ffe66d;
-        --neon-d: #6eff7e;
-        --glass: rgba(10, 16, 35, 0.62);
+        --bg: #020712;
+        --fg: #d9fff4;
+        --neon: #45ffd2;
+        --accent: #8f79ff;
+        --warn: #ff7ab8;
       }
       * { box-sizing: border-box; }
       body {
         margin: 0;
-        font-family: "Inter", "Segoe UI", system-ui, sans-serif;
-        color: var(--fg);
-        background: radial-gradient(circle at top, #0a112b, #02040a 55%);
         min-height: 100vh;
-        overflow-x: hidden;
+        color: var(--fg);
+        font-family: Inter, system-ui, sans-serif;
+        background: radial-gradient(circle at 30% 20%, #0f1b38 0%, #04060d 55%, #010205 100%);
       }
-      #three-bg {
+      #stage {
         position: fixed;
         inset: 0;
-        z-index: 0;
-        opacity: 0.6;
-        filter: saturate(1.2);
-      }
-      .app {
-        position: relative;
-        z-index: 1;
-        width: min(1200px, 96vw);
-        margin: 1.2rem auto 2rem;
-        display: grid;
-        gap: 1rem;
-      }
-      .panel {
-        backdrop-filter: blur(10px);
-        background: var(--glass);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        border-radius: 14px;
-        box-shadow: 0 0 40px rgba(54, 255, 225, 0.1);
-      }
-      .hero {
-        padding: 1rem 1.2rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 1rem;
-      }
-      .hero h1 {
-        margin: 0;
-        font-size: clamp(1.2rem, 1.6vw + 0.8rem, 2rem);
-        letter-spacing: 0.04em;
-        text-shadow: 0 0 16px rgba(54, 255, 225, 0.45);
-      }
-      .hero small {
-        opacity: 0.86;
-      }
-      .metrics {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(150px, 1fr));
-        gap: 0.8rem;
-      }
-      .metric {
-        padding: 0.8rem;
-        border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        min-height: 110px;
-      }
-      .metric h2 {
-        margin: 0 0 0.4rem;
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        letter-spacing: 0.09em;
-      }
-      .metric .value {
-        font-size: clamp(1.5rem, 2.8vw, 2.4rem);
-        font-weight: 700;
-        text-shadow: 0 0 12px currentColor;
-      }
-      .metric .meta {
-        font-size: 0.8rem;
-        opacity: 0.85;
-      }
-      .a { color: var(--neon-a); }
-      .b { color: var(--neon-b); }
-      .c { color: var(--neon-c); }
-      .d { color: var(--neon-d); }
-      .charts {
-        display: grid;
-        grid-template-columns: 2fr 1fr;
-        gap: 1rem;
-      }
-      .chart-wrap { padding: 0.8rem; }
-      canvas#chart {
         width: 100%;
-        height: 320px;
-        border-radius: 10px;
-        background: linear-gradient(180deg, rgba(10, 22, 44, 0.5), rgba(0, 0, 0, 0.5));
+        height: 100%;
       }
-      .control-grid {
-        padding: 0.8rem;
-        display: grid;
-        gap: 0.6rem;
+      .hud {
+        position: fixed;
+        top: 1rem;
+        left: 1rem;
+        z-index: 2;
+        width: min(450px, calc(100vw - 2rem));
+        padding: 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        border-radius: 12px;
+        background: rgba(6, 12, 26, 0.74);
+        backdrop-filter: blur(8px);
       }
-      .control-grid label {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        gap: 0.4rem;
-        font-size: 0.9rem;
+      h1 {
+        margin: 0 0 0.45rem;
+        font-size: clamp(1rem, 1.1rem + 0.9vw, 1.5rem);
       }
-      .controls button {
-        cursor: pointer;
-        background: rgba(255, 255, 255, 0.08);
-        color: var(--fg);
-        border: 1px solid rgba(255, 255, 255, 0.28);
+      p {
+        margin: 0 0 0.75rem;
+        opacity: 0.9;
+        font-size: 0.95rem;
+      }
+      button {
+        appearance: none;
+        border: 1px solid rgba(255, 255, 255, 0.3);
         border-radius: 9px;
-        padding: 0.45rem 0.7rem;
+        background: rgba(69, 255, 210, 0.12);
+        color: var(--fg);
+        padding: 0.45rem 0.75rem;
+        cursor: pointer;
       }
-      .drum {
-        padding: 0.8rem;
+      .meter {
+        margin-top: 0.8rem;
+        height: 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.12);
+        overflow: hidden;
       }
-      .steps {
-        display: grid;
-        grid-template-columns: repeat(16, 1fr);
-        gap: 0.35rem;
+      .bar {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, var(--neon), var(--accent), var(--warn));
+        box-shadow: 0 0 12px rgba(69, 255, 210, 0.8);
+        transition: width 70ms linear;
       }
-      .step {
-        aspect-ratio: 1;
-        border-radius: 5px;
-        border: 1px solid rgba(255, 255, 255, 0.24);
-        background: rgba(8, 10, 22, 0.7);
-      }
-      .step.active { background: rgba(110, 255, 126, 0.85); }
-      .step.playhead { outline: 2px solid var(--neon-c); }
-      .row-name { min-width: 50px; opacity: 0.8; font-size: 0.85rem; }
-      .drum-row {
-        display: grid;
-        grid-template-columns: 56px 1fr;
-        gap: 0.5rem;
-        align-items: center;
-        margin-bottom: 0.35rem;
-      }
-      @media (max-width: 980px) {
-        .metrics { grid-template-columns: repeat(2, minmax(150px, 1fr)); }
-        .charts { grid-template-columns: 1fr; }
-      }
+      #status { margin-top: 0.5rem; font-size: 0.88rem; opacity: 0.85; }
     </style>
   </head>
   <body>
-    <canvas id="three-bg"></canvas>
-    <main class="app">
-      <section class="panel hero">
-        <div>
-          <h1>Env Sensor IV • M5Stack C6Nano • SolarPunk Control Deck</h1>
-          <small id="status">Polling http://192.168.1.80/json (2s cadence)</small>
-        </div>
-        <div>
-          <small id="last-update">Awaiting data…</small>
-        </div>
-      </section>
-
-      <section class="metrics">
-        <article class="panel metric a"><h2>Temperature</h2><div class="value" id="temp">--</div><div class="meta" id="temp-trend"></div></article>
-        <article class="panel metric b"><h2>Humidity</h2><div class="value" id="humidity">--</div><div class="meta" id="humidity-trend"></div></article>
-        <article class="panel metric c"><h2>Pressure</h2><div class="value" id="pressure">--</div><div class="meta" id="pressure-trend"></div></article>
-        <article class="panel metric d"><h2>VOC / AQ</h2><div class="value" id="voc">--</div><div class="meta" id="voc-trend"></div></article>
-      </section>
-
-      <section class="charts">
-        <article class="panel chart-wrap">
-          <canvas id="chart" width="900" height="320"></canvas>
-        </article>
-        <article class="panel control-grid controls">
-          <strong>Visual / Audio Mixing</strong>
-          <label>Bloom <span id="bloom-out">1.0</span><input id="bloom" type="range" min="0.4" max="2" step="0.05" value="1" /></label>
-          <label>Hue Shift <span id="hue-out">0</span><input id="hue" type="range" min="-120" max="120" step="1" value="0" /></label>
-          <label>Master Vol <span id="vol-out">0.35</span><input id="volume" type="range" min="0" max="1" step="0.01" value="0.35" /></label>
-          <label>BPM <span id="bpm-out">124</span><input id="bpm" type="range" min="80" max="150" step="1" value="124" /></label>
-          <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
-            <button id="play-drum">▶ Play 808 Grid</button>
-            <button id="export-json">Export JSON Log</button>
-            <button id="clear-log">Clear Log</button>
-          </div>
-        </article>
-      </section>
-
-      <section class="panel drum">
-        <strong>TR-808 Inspired Step Matrix</strong>
-        <div id="drum-grid"></div>
-      </section>
-    </main>
+    <canvas id="stage"></canvas>
+    <aside class="hud">
+      <h1>Bird-in-a-Box Remix: 20-Sided "Bucky" Shell</h1>
+      <p>Click enable mic, then make noise. The inner snake deforms instantly with ambient sound.</p>
+      <button id="mic-toggle">Enable microphone</button>
+      <div class="meter"><div id="meter-bar" class="bar"></div></div>
+      <div id="status">Mic idle.</div>
+    </aside>
 
     <script type="module">
       import * as THREE from 'https://unpkg.com/three@0.162.0/build/three.module.js';
 
-      const endpoint = 'http://192.168.1.80/json';
-      const pollMs = 2000;
-      const maxPoints = 180;
-      const logKey = 'casm-c6nano-log-v1';
-      const statusEl = document.getElementById('status');
-      const lastUpdateEl = document.getElementById('last-update');
-      const valueEls = {
-        temp: document.getElementById('temp'),
-        humidity: document.getElementById('humidity'),
-        pressure: document.getElementById('pressure'),
-        voc: document.getElementById('voc')
-      };
-
-      const trendEls = {
-        temp: document.getElementById('temp-trend'),
-        humidity: document.getElementById('humidity-trend'),
-        pressure: document.getElementById('pressure-trend'),
-        voc: document.getElementById('voc-trend')
-      };
-
-      const history = JSON.parse(localStorage.getItem(logKey) || '[]');
-
-      function parseReading(payload) {
-        const now = new Date().toISOString();
-        return {
-          ts: payload?.timestamp || payload?.time || now,
-          temp: Number(payload?.temperature ?? payload?.temp ?? payload?.t ?? NaN),
-          humidity: Number(payload?.humidity ?? payload?.rh ?? NaN),
-          pressure: Number(payload?.pressure ?? payload?.press ?? payload?.baro ?? NaN),
-          voc: Number(payload?.voc ?? payload?.aqi ?? payload?.gas ?? NaN)
-        };
-      }
-
-      function fmt(num, unit) {
-        return Number.isFinite(num) ? `${num.toFixed(1)} ${unit}` : '--';
-      }
-
-      function updateCards(r) {
-        valueEls.temp.textContent = fmt(r.temp, '°C');
-        valueEls.humidity.textContent = fmt(r.humidity, '%');
-        valueEls.pressure.textContent = fmt(r.pressure, 'hPa');
-        valueEls.voc.textContent = fmt(r.voc, 'ppb');
-
-        const prev = history.at(-2);
-        for (const k of ['temp', 'humidity', 'pressure', 'voc']) {
-          if (!prev || !Number.isFinite(prev[k]) || !Number.isFinite(r[k])) {
-            trendEls[k].textContent = 'trend: n/a';
-            continue;
-          }
-          const delta = r[k] - prev[k];
-          const icon = delta > 0 ? '▲' : delta < 0 ? '▼' : '■';
-          trendEls[k].textContent = `trend: ${icon} ${delta.toFixed(2)}`;
-        }
-      }
-
-      async function pollSensor() {
-        try {
-          const res = await fetch(endpoint, { cache: 'no-store' });
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          const payload = await res.json();
-          const reading = parseReading(payload);
-          history.push(reading);
-          while (history.length > maxPoints) history.shift();
-          localStorage.setItem(logKey, JSON.stringify(history));
-          updateCards(reading);
-          lastUpdateEl.textContent = `Last update: ${new Date(reading.ts).toLocaleString()}`;
-          statusEl.textContent = `Live: ${endpoint} • ${pollMs / 1000}s cadence • points ${history.length}`;
-          drawChart();
-          updateScene(reading);
-        } catch (err) {
-          statusEl.textContent = `Sensor offline/error: ${String(err)}`;
-        }
-      }
-
-      const chart = document.getElementById('chart');
-      const ctx = chart.getContext('2d');
-      const palette = { temp: '#36ffe1', humidity: '#c55dff', pressure: '#ffe66d', voc: '#6eff7e' };
-
-      function drawLine(key, min, max) {
-        ctx.beginPath();
-        history.forEach((r, i) => {
-          const v = r[key];
-          if (!Number.isFinite(v)) return;
-          const x = (i / Math.max(1, history.length - 1)) * chart.width;
-          const y = chart.height - ((v - min) / Math.max(1e-9, (max - min))) * chart.height;
-          i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-        });
-        ctx.strokeStyle = palette[key];
-        ctx.lineWidth = 2;
-        ctx.shadowBlur = 12;
-        ctx.shadowColor = palette[key];
-        ctx.stroke();
-      }
-
-      function drawChart() {
-        ctx.clearRect(0, 0, chart.width, chart.height);
-        ctx.fillStyle = '#030510';
-        ctx.fillRect(0, 0, chart.width, chart.height);
-
-        for (let h = 0; h <= 24; h++) {
-          const x = (h / 24) * chart.width;
-          const isDay = h >= 6 && h <= 18;
-          ctx.fillStyle = isDay ? 'rgba(80, 160, 120, 0.05)' : 'rgba(80, 80, 140, 0.09)';
-          ctx.fillRect(x, 0, chart.width / 24 + 1, chart.height);
-        }
-
-        const keys = ['temp', 'humidity', 'pressure', 'voc'];
-        for (const key of keys) {
-          const vals = history.map(h => h[key]).filter(Number.isFinite);
-          if (!vals.length) continue;
-          drawLine(key, Math.min(...vals), Math.max(...vals));
-        }
-
-        ctx.fillStyle = '#d0ffe9';
-        ctx.font = '12px sans-serif';
-        ctx.fillText('Nocturnal → Diurnal cycle shading', 12, 18);
-      }
-
-      const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('three-bg'), antialias: true, alpha: true });
-      const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 100);
-      camera.position.set(0, 0.6, 4);
+      const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('stage'), antialias: true, alpha: true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 
-      const lightA = new THREE.PointLight(0x36ffe1, 2.1, 20);
-      lightA.position.set(3, 3, 2);
-      const lightB = new THREE.PointLight(0xc55dff, 1.8, 20);
-      lightB.position.set(-3, -1.5, 2);
-      scene.add(lightA, lightB, new THREE.AmbientLight(0x5588aa, 0.2));
+      const scene = new THREE.Scene();
+      scene.fog = new THREE.FogExp2(0x020712, 0.13);
 
-      const torus = new THREE.Mesh(
-        new THREE.TorusKnotGeometry(0.9, 0.24, 180, 32),
-        new THREE.MeshStandardMaterial({ color: 0x36ffe1, emissive: 0x113333, metalness: 0.85, roughness: 0.2 })
+      const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+      camera.position.set(0, 0.2, 5.8);
+
+      scene.add(new THREE.AmbientLight(0x446688, 0.35));
+      const key = new THREE.PointLight(0x45ffd2, 2.2, 20);
+      key.position.set(2.8, 3.6, 2.2);
+      scene.add(key);
+      const rim = new THREE.PointLight(0x8f79ff, 1.8, 16);
+      rim.position.set(-2.9, -1.8, 2.3);
+      scene.add(rim);
+
+      const shellGeo = new THREE.IcosahedronGeometry(2.1, 0);
+      const shell = new THREE.Mesh(
+        shellGeo,
+        new THREE.MeshPhysicalMaterial({
+          color: 0x74fff0,
+          transparent: true,
+          opacity: 0.12,
+          roughness: 0.2,
+          metalness: 0.65,
+          transmission: 0.65,
+          thickness: 0.4
+        })
       );
-      scene.add(torus);
+      scene.add(shell);
 
-      const bars = ['temp', 'humidity', 'pressure', 'voc'].map((k, i) => {
-        const m = new THREE.Mesh(
-          new THREE.BoxGeometry(0.2, 1, 0.2),
-          new THREE.MeshStandardMaterial({ color: new THREE.Color(palette[k]), emissive: new THREE.Color(palette[k]).multiplyScalar(0.3) })
+      const shellWire = new THREE.LineSegments(
+        new THREE.WireframeGeometry(shellGeo),
+        new THREE.LineBasicMaterial({ color: 0x83f6ff, transparent: true, opacity: 0.8 })
+      );
+      scene.add(shellWire);
+
+      const pointCount = 150;
+      const points = Array.from({ length: pointCount }, (_, i) => {
+        const t = (i / (pointCount - 1)) * Math.PI * 3.8;
+        const radius = 0.45 + i * 0.009;
+        return new THREE.Vector3(
+          Math.cos(t) * radius,
+          (i / pointCount - 0.5) * 2.4,
+          Math.sin(t) * radius
         );
-        m.position.set(-1.2 + i * 0.8, -1.3, -0.6);
-        m.scale.y = 0.2;
-        scene.add(m);
-        return m;
       });
 
-      const starsGeo = new THREE.BufferGeometry();
-      const starCount = 700;
-      const positions = new Float32Array(starCount * 3);
-      for (let i = 0; i < starCount; i++) {
-        positions[i * 3] = (Math.random() - 0.5) * 12;
-        positions[i * 3 + 1] = (Math.random() - 0.5) * 8;
-        positions[i * 3 + 2] = (Math.random() - 0.5) * 10;
+      const snakeCurve = new THREE.CatmullRomCurve3(points, false, 'catmullrom', 0.6);
+      const snakeGeo = new THREE.TubeGeometry(snakeCurve, 340, 0.06, 12, false);
+      const snakeMat = new THREE.MeshStandardMaterial({
+        color: 0xff8fd0,
+        emissive: 0x3b132d,
+        metalness: 0.35,
+        roughness: 0.22
+      });
+      let snake = new THREE.Mesh(snakeGeo, snakeMat);
+      scene.add(snake);
+
+      const starGeo = new THREE.BufferGeometry();
+      const starCount = 950;
+      const starPos = new Float32Array(starCount * 3);
+      for (let i = 0; i < starCount; i += 1) {
+        starPos[i * 3] = (Math.random() - 0.5) * 14;
+        starPos[i * 3 + 1] = (Math.random() - 0.5) * 10;
+        starPos[i * 3 + 2] = (Math.random() - 0.5) * 12;
       }
-      starsGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-      const stars = new THREE.Points(starsGeo, new THREE.PointsMaterial({ color: 0x9ddfff, size: 0.03 }));
+      starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+      const stars = new THREE.Points(starGeo, new THREE.PointsMaterial({ size: 0.025, color: 0x89baff }));
       scene.add(stars);
 
-      let bloom = 1;
-      let hueDeg = 0;
-      function updateScene(reading) {
-        const vals = [reading.temp, reading.humidity, reading.pressure, reading.voc].map(v => Number.isFinite(v) ? v : 0);
-        vals.forEach((v, i) => { bars[i].scale.y = Math.max(0.2, Math.min(2.4, Math.abs(v) / 50)); });
+      const meterBar = document.getElementById('meter-bar');
+      const statusEl = document.getElementById('status');
+      const toggleBtn = document.getElementById('mic-toggle');
+      let audioCtx;
+      let analyser;
+      let micData;
+      let micLevel = 0;
+      let stream;
+
+      function rebuildSnake(level, t) {
+        const amp = THREE.MathUtils.lerp(0.02, 0.56, Math.min(1, level * 2.4));
+        for (let i = 0; i < points.length; i += 1) {
+          const pct = i / (points.length - 1);
+          const theta = pct * Math.PI * 14 + t * 0.0024;
+          const curl = Math.sin(theta * 0.7 + t * 0.0011) * amp;
+          const ring = 0.42 + pct * 1.25 + curl;
+          points[i].x = Math.cos(theta) * ring;
+          points[i].z = Math.sin(theta) * ring;
+          points[i].y = -1.35 + pct * 2.7 + Math.sin(theta * 0.35 + t * 0.0016) * amp * 1.4;
+        }
+
+        snake.geometry.dispose();
+        const curve = new THREE.CatmullRomCurve3(points, false, 'catmullrom', 0.5);
+        snake.geometry = new THREE.TubeGeometry(curve, 340, 0.05 + amp * 0.1, 12, false);
+        snake.material.emissiveIntensity = 0.7 + Math.min(1.6, level * 3.2);
       }
 
-      function animate(t) {
-        torus.rotation.x = t * 0.0002;
-        torus.rotation.y = t * 0.00035;
-        stars.rotation.y += 0.0002;
-        renderer.domElement.style.filter = `saturate(${bloom}) hue-rotate(${hueDeg}deg)`;
+      async function enableMic() {
+        try {
+          if (!navigator.mediaDevices?.getUserMedia) throw new Error('getUserMedia is unavailable in this browser');
+          stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          const src = audioCtx.createMediaStreamSource(stream);
+          analyser = audioCtx.createAnalyser();
+          analyser.fftSize = 512;
+          analyser.smoothingTimeConstant = 0.78;
+          src.connect(analyser);
+          micData = new Uint8Array(analyser.frequencyBinCount);
+          statusEl.textContent = 'Microphone active: any ambient noise now drives the snake.';
+          toggleBtn.textContent = 'Microphone enabled';
+          toggleBtn.disabled = true;
+        } catch (error) {
+          statusEl.textContent = `Mic error: ${String(error.message || error)}`;
+        }
+      }
+
+      toggleBtn.addEventListener('click', enableMic);
+
+      function sampleMic() {
+        if (!analyser || !micData) return 0;
+        analyser.getByteFrequencyData(micData);
+        let sum = 0;
+        for (let i = 0; i < micData.length; i += 1) sum += micData[i];
+        const avg = sum / micData.length;
+        return Math.min(1, avg / 120);
+      }
+
+      function animate(time) {
+        const live = sampleMic();
+        micLevel = THREE.MathUtils.lerp(micLevel, live, 0.24);
+
+        shell.rotation.x = time * 0.00012;
+        shell.rotation.y = time * 0.00017;
+        shellWire.rotation.copy(shell.rotation);
+        stars.rotation.y += 0.00015;
+        stars.rotation.x += 0.00003;
+
+        const pulse = 1 + micLevel * 0.35;
+        shell.scale.setScalar(pulse);
+        shellWire.scale.setScalar(1 + micLevel * 0.25);
+        key.intensity = 1.8 + micLevel * 2.7;
+
+        rebuildSnake(micLevel, time);
+        meterBar.style.width = `${(micLevel * 100).toFixed(1)}%`;
+
         renderer.render(scene, camera);
         requestAnimationFrame(animate);
       }
       requestAnimationFrame(animate);
 
       window.addEventListener('resize', () => {
-        camera.aspect = innerWidth / innerHeight;
+        camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
-        renderer.setSize(innerWidth, innerHeight);
+        renderer.setSize(window.innerWidth, window.innerHeight);
       });
-
-      const AudioContextRef = window.AudioContext || window.webkitAudioContext;
-      const audio = new AudioContextRef();
-      const master = audio.createGain();
-      master.gain.value = 0.35;
-      master.connect(audio.destination);
-      let playing = false;
-      let step = 0;
-      const tracks = ['kick', 'snare', 'hat'];
-      const pattern = {
-        kick: [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0],
-        snare:[0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0],
-        hat:  [1,1,1,1,1,0,1,1,1,1,1,0,1,1,1,0]
-      };
-
-      const drumGrid = document.getElementById('drum-grid');
-      const cells = {};
-      tracks.forEach(track => {
-        const row = document.createElement('div');
-        row.className = 'drum-row';
-        const name = document.createElement('div');
-        name.className = 'row-name';
-        name.textContent = track;
-        const stepsEl = document.createElement('div');
-        stepsEl.className = 'steps';
-        cells[track] = [];
-        for (let i = 0; i < 16; i++) {
-          const b = document.createElement('button');
-          b.className = `step ${pattern[track][i] ? 'active' : ''}`;
-          b.onclick = () => {
-            pattern[track][i] = pattern[track][i] ? 0 : 1;
-            b.classList.toggle('active');
-          };
-          stepsEl.appendChild(b);
-          cells[track].push(b);
-        }
-        row.append(name, stepsEl);
-        drumGrid.appendChild(row);
-      });
-
-      function kick(at) {
-        const osc = audio.createOscillator();
-        const gain = audio.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(140, at);
-        osc.frequency.exponentialRampToValueAtTime(36, at + 0.13);
-        gain.gain.setValueAtTime(0.9, at);
-        gain.gain.exponentialRampToValueAtTime(0.001, at + 0.16);
-        osc.connect(gain).connect(master);
-        osc.start(at); osc.stop(at + 0.2);
-      }
-      function snare(at) {
-        const noise = audio.createBufferSource();
-        const buffer = audio.createBuffer(1, audio.sampleRate * 0.2, audio.sampleRate);
-        const data = buffer.getChannelData(0);
-        for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
-        noise.buffer = buffer;
-        const hp = audio.createBiquadFilter();
-        hp.type = 'highpass'; hp.frequency.value = 1200;
-        const gain = audio.createGain();
-        gain.gain.setValueAtTime(0.4, at);
-        gain.gain.exponentialRampToValueAtTime(0.01, at + 0.15);
-        noise.connect(hp).connect(gain).connect(master);
-        noise.start(at); noise.stop(at + 0.2);
-      }
-      function hat(at) {
-        const osc = audio.createOscillator();
-        const gain = audio.createGain();
-        osc.type = 'square';
-        osc.frequency.value = 9000;
-        gain.gain.setValueAtTime(0.16, at);
-        gain.gain.exponentialRampToValueAtTime(0.001, at + 0.05);
-        osc.connect(gain).connect(master);
-        osc.start(at); osc.stop(at + 0.07);
-      }
-
-      let bpm = 124;
-      function tick() {
-        if (!playing) return;
-        const now = audio.currentTime;
-        for (const tr of tracks) {
-          cells[tr].forEach((c, idx) => c.classList.toggle('playhead', idx === step));
-          if (pattern[tr][step]) ({ kick, snare, hat }[tr])(now);
-        }
-        step = (step + 1) % 16;
-        const ms = (60 / bpm) * 1000 / 4;
-        setTimeout(tick, ms);
-      }
-
-      document.getElementById('play-drum').onclick = async (e) => {
-        if (audio.state !== 'running') await audio.resume();
-        playing = !playing;
-        e.target.textContent = playing ? '⏸ Pause 808 Grid' : '▶ Play 808 Grid';
-        if (playing) tick();
-      };
-
-      document.getElementById('export-json').onclick = () => {
-        const blob = new Blob([JSON.stringify(history, null, 2)], { type: 'application/json' });
-        const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: 'env-log.json' });
-        a.click();
-      };
-      document.getElementById('clear-log').onclick = () => {
-        history.splice(0, history.length);
-        localStorage.removeItem(logKey);
-        drawChart();
-      };
-
-      const bloomInput = document.getElementById('bloom');
-      const hueInput = document.getElementById('hue');
-      const volInput = document.getElementById('volume');
-      const bpmInput = document.getElementById('bpm');
-
-      bloomInput.oninput = () => { bloom = Number(bloomInput.value); document.getElementById('bloom-out').textContent = bloom.toFixed(2); };
-      hueInput.oninput = () => { hueDeg = Number(hueInput.value); document.getElementById('hue-out').textContent = String(hueDeg); };
-      volInput.oninput = () => { master.gain.value = Number(volInput.value); document.getElementById('vol-out').textContent = volInput.value; };
-      bpmInput.oninput = () => { bpm = Number(bpmInput.value); document.getElementById('bpm-out').textContent = String(bpm); };
-
-      if (history.length) {
-        updateCards(history.at(-1));
-        drawChart();
-      }
-      pollSensor();
-      setInterval(pollSensor, pollMs);
     </script>
   </body>
 </html>
